@@ -177,6 +177,8 @@ class CinemaSeat {
 
         const rowNumber = Math.floor(y / seatHeight);
         const columnNumber = Math.floor(x / seatWidth);
+        // 走道数
+        const columnPathCount = emptySeatLocation[rowNumber].filter((item, index) => !item && index < columnNumber).length;
 
         // 点击到过道
         if (!emptySeatLocation[rowNumber][columnNumber]) {
@@ -199,7 +201,7 @@ class CinemaSeat {
                 columnNumber
             });
             setTimeout(() => {
-                alert(`取消座位：${rowNumber + 1}排${columnNumber + 1}座`);
+                alert(`取消座位：${rowNumber + 1}排${columnNumber + 1 - columnPathCount}座`);
             });
         }
         else {
@@ -211,7 +213,7 @@ class CinemaSeat {
                 columnNumber
             });
             setTimeout(() => {
-                alert(`选择座位：${rowNumber + 1}排${columnNumber + 1}座`);
+                alert(`选择座位：${rowNumber + 1}排${columnNumber + 1 - columnPathCount}座`);
             });
         }
     }
