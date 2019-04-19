@@ -37,10 +37,19 @@ const TAKEN_SEAT_IMG_URL = './img/seat_taken.png';
 
 const isTouchSupported = 'ontouchend' in document;
 
+// 兼容PC与移动设备
+const EVENT_TYPE = {
+    CLICK: isTouchSupported ? 'touchend' : 'click',
+    MOUSE_DOWN: isTouchSupported ? 'touchstart' : 'mousedown',
+    MOUSE_MOVE: isTouchSupported ? 'touchmove' : 'mousemove',
+    MOUSE_UP: isTouchSupported ? 'touchend' : 'mouseup'
+};
+
 function setSeatText(text) {
     const selectedSeatElement = document.getElementById('selectedSeat');
-    selectedSeatElement.textContent = text;
+    selectedSeatElement && (selectedSeatElement.textContent = text);
 }
+
 /**
  * 加载图片，超时5s则直接返回
  * @param url
@@ -241,7 +250,7 @@ class CinemaSeat {
      * @param e
      * @return {*}
      */
-    static getPointPosition (e) {
+    static getPointPosition(e) {
         if (isTouchSupported) {
             return e.changedTouches[0];
         }
@@ -251,15 +260,13 @@ class CinemaSeat {
     addEventListener() {
         this.clickListener = e => {
             const { pageX, pageY } = CinemaSeat.getPointPosition(e);
-            // 触摸事件通过touchend与touchstart的距离来确定是否为点击事件
-            if (isTouchSupported) {
-                // 触摸前后移动位置过大，忽略此次点击
-                if (Math.abs(this.mouseDownPosition.pageX -pageX) > 10
-                    || Math.abs(this.mouseDownPosition.pageY -pageY) > 10) {
-                    return;
-                }
-                this.mouseDownPosition = {};
+            // 事件通过touchend与touchstart的距离来确定是否为点击事件
+            // 前后移动位置过大，忽略此次点击
+            if (Math.abs(this.mouseDownPosition.pageX - pageX) > 10
+                || Math.abs(this.mouseDownPosition.pageY - pageY) > 10) {
+                return;
             }
+            this.mouseDownPosition = {};
             const { canvasWidth, canvasHeight, canvasPosition } = this;
             const x = pageX - canvasPosition.x;
             const y = pageY - canvasPosition.y;
@@ -282,25 +289,15 @@ class CinemaSeat {
             this.updateSize();
         };
 
-        if (isTouchSupported) {
-            document.addEventListener('touchend', this.clickListener);
-            document.addEventListener('touchstart', this.mouseDownListener);
-        }
-        else {
-            document.addEventListener('click', this.clickListener);
-        }
+        document.addEventListener(EVENT_TYPE.MOUSE_UP, this.clickListener);
+        document.addEventListener(EVENT_TYPE.MOUSE_DOWN, this.mouseDownListener);
         window.addEventListener('resize', this.resizeListener);
     }
 
     removeEventListener() {
 
-        if (isTouchSupported) {
-            document.removeEventListener('touchend', this.clickListener);
-            document.removeEventListener('touchstart', this.mouseDownListener);
-        }
-        else {
-            document.removeEventListener('click', this.clickListener);
-        }
+        document.removeEventListener(EVENT_TYPE.MOUSE_UP, this.clickListener);
+        document.removeEventListener(EVENT_TYPE.MOUSE_DOWN, this.mouseDownListener);
         window.removeEventListener('resize', this.resizeListener);
     }
 
